@@ -1,27 +1,33 @@
-
-:root{
-  --app-bg:#f4f6fa;
-  --app-text:#1f1f1f;
+/* src/theme/index.scss */
+:root {
+  --color-bg: #f9fafb;               /* 整体背景 */
+  --color-surface: #ffffff;          /* 卡片、容器 */
+  --color-panel: #ffffff;            /* 侧栏、头部 */
+  --color-text: #252525;             /* 主文字 */
 }
 
-html.dark{
-  --app-bg:#181818;
-  --app-text:#e5e5e5;
+html.dark {
+  --color-bg: #1f2430;
+  --color-surface: #222937;
+  --color-panel: #1c2027;
+  --color-text: #e3e6eb;
 }
 
-body{
-  margin:0;
-  background:var(--app-bg);
-  color:var(--app-text);
-  transition:background .3s,color .3s;
-  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif;
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: background .3s, color .3s;
 }
-/* 仅在添加 .theme-transition 时启用过渡，完毕自动去掉 */
-html.theme-transition,
-html.theme-transition * {
-  transition: background-color 0.35s ease,
-  color 0.35s ease,
-  border-color 0.35s ease,
-  fill 0.35s ease,
-  stroke 0.35s ease;
+
+/* 应用到 ElementPlus 基础布局 */
+.el-aside {
+  background: var(--color-panel) !important;
+}
+.el-header {
+  background: var(--color-panel) !important;
+}
+.el-main,
+.el-container,
+.el-card {
+  background: var(--color-surface) !important;
 }

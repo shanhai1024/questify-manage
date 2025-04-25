@@ -11,7 +11,7 @@
         </transition>
       </div>
 
-      <Menu />
+      <Menu  class="menu"/>
     </el-aside>
 
     <el-container>
@@ -64,6 +64,9 @@ const app = useAppStore()
   font-weight: bold;
   color: var(--el-color-primary);
 }
+.menu{
+  height: 100%;
+}
 
 .fade-enter-active,
 .fade-leave-active {
@@ -77,5 +80,6 @@ const app = useAppStore()
 
 .header {
   padding: 0;
+  width: 100%;
 }
 </style>
