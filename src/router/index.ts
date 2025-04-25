@@ -1,0 +1,48 @@
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+
+/* 常规同步引入 */
+import Login from '@/views/Login.vue'
+import Layout from '@/views/layout/Index.vue'
+import Dashboard from '@/views/Dashboard.vue'
+
+const routes: RouteRecordRaw[] = [
+  {
+    path: '/login',
+    component: Login,
+    meta: { public: true, title: '登录' }
+  },
+  {
+    path: '/',
+    component: Layout,
+    redirect: '/dashboard',             // 默认重定向
+    children: [
+      {
+        path: 'dashboard',
+        component: Dashboard,
+        meta: { title: '仪表盘' }
+      },
+      {
+        path: 'setting',
+        /* 懒加载写法 ↓↓↓ */
+        component: () => import('@/views/Setting.vue'),
+        meta: { title: '系统设置' }
+      }
+    ]
+  },
+  /* 404 可选 */
+  { path: '/:pathMatch(.*)*', redirect: '/dashboard' }
+]
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes
+})
+
+/* 登陆拦截 */
+router.beforeEach((to, _from, next) => {
+  const token = localStorage.getItem('token')
+  if (!to.meta.public && !token) return next('/login')
+  next()
+})
+
+export default router
