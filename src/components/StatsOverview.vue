@@ -1,27 +1,25 @@
 <template>
-  <el-row :gutter="20" class="stats-overview">
-    <el-col
-        v-for="stat in stats"
+  <div class="stats-wrapper">
+    <div
+        v-for="(stat, idx) in stats"
         :key="stat.label"
-        :xs="24"
-        :sm="12"
-        :lg="6"
+        class="stats-card"
+        :style="{ background: getGradient(idx) }"
     >
-      <el-card shadow="hover" class="stat-card">
-        <div class="icon-wrapper">
-          <component :is="stat.icon" class="stat-icon" />
-        </div>
-        <div class="stat-value">{{ stat.animated }}</div>
-        <div class="stat-label">{{ stat.label }}</div>
-      </el-card>
-    </el-col>
-  </el-row>
+      <div class="icon-container">
+        <component :is="stat.icon" class="stats-icon" />
+      </div>
+      <div class="stat-value">{{ stat.animated }}</div>
+      <div class="stat-label">{{ stat.label }}</div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useTransition } from '@vueuse/core'
-import axios from 'axios'
+import  statsApi from "@/api/stats"
+import { useGradient } from '@/theme/useGradient'
 import {
   Document as DocumentIcon,
   User as UserIcon,
@@ -29,92 +27,110 @@ import {
   Menu as CategoryIcon,
 } from '@element-plus/icons-vue'
 
-// 定义原始值
-const questionCount    = ref(0)
-const userCount        = ref(0)
-const visitCount       = ref(0)
-const categoryCount    = ref(0)
+const { getGradient } = useGradient()
 
-// 用 useTransition 做数字滚动动画
+const questionCount = ref(0)
+const userCount     = ref(0)
+const visitCount    = ref(0)
+const categoryCount = ref(0)
+
 const stats = [
-  { label: '题目总数',     raw: questionCount, icon: DocumentIcon },
-  { label: '用户总数',     raw: userCount,     icon: UserIcon },
-  { label: '今日访问量',   raw: visitCount,    icon: VisitsIcon },
-  { label: '分类总数',     raw: categoryCount, icon: CategoryIcon },
+  { label: '题目总数',   raw: questionCount, icon: DocumentIcon },
+  { label: '用户总数',   raw: userCount,     icon: UserIcon     },
+  { label: '今日访问量', raw: visitCount,    icon: VisitsIcon   },
+  { label: '分类总数',   raw: categoryCount, icon: CategoryIcon },
 ].map(s => ({
   label: s.label,
   icon: s.icon,
-  animated: useTransition(s.raw, { duration: 1200 }),
+  animated: useTransition(s.raw, { duration: 800 }),
 }))
 
-// 页面挂载后拉取数据
 onMounted(async () => {
   try {
-    const { data } = await axios.get('/api/v1/admin/dashboard')
-    questionCount.value = data.totalQuestions
-    userCount.value     = data.totalUsers
-    visitCount.value    = data.todayVisits
-    categoryCount.value = data.totalCategories
+    statsApi.getStatsData().then(res=>{
+      console.log("=-=-=-=-=-=-")
+      console.log(res.data)
+      questionCount.value = res.data.totalQuestions
+      userCount.value     = res.data.totalUsers
+      visitCount.value    = res.data.todayVisits
+      categoryCount.value = res.data.totalCategories
+
+    })
   } catch (e) {
     console.error('统计数据获取失败', e)
   }
 })
 </script>
 
-<style scoped>
-.stats-overview {
-  margin-top: 24px;
+<style scoped lang="scss">
+.stats-wrapper {
+  display: grid;
+  /* 四列自动撑开；超宽时均分；窄屏时自动换行 */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  padding: 16px 0;
 }
 
-/* 卡片整体 */
-.stat-card {
-  text-align: center;
-  border-radius: 12px;
-  padding: 20px 10px;
-  background: var(--el-bg-color-container);
+.stats-card {
+  height: 220px;
+  border-radius: 16px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   transition: transform .2s, box-shadow .2s;
-}
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--el-shadow-5);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  cursor: default;
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  }
 }
 
-/* 图标外壳 */
-.icon-wrapper {
-  width: 48px;
-  height: 48px;
-  margin: 0 auto 12px;
-  border-radius: 50%;
-  background: var(--el-color-primary-light-9);
+.icon-container {
+  width: 80px;
+  height: 80px;
+  padding: 16px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(255,255,255,0.25);
+  border-radius: 50%;
+  transition: background .3s;
 }
 
-/* 图标 */
-.stat-icon {
-  font-size: 24px;
-  color: var(--el-color-primary);
+.stats-icon {
+  width: 100%;
+  height: 100%;
+  color: #fff;
 }
 
-/* 数字 */
 .stat-value {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 600;
-  color: var(--el-text-color-primary);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
-/* 标签 */
 .stat-label {
   font-size: 14px;
-  color: var(--el-text-color-secondary);
+  opacity: 0.9;
 }
 
-/* 响应式：窄屏调整间距 */
-@media (max-width: 600px) {
-  .stat-card {
-    margin-bottom: 16px;
+/* 超窄屏时收敛尺寸 */
+@media (max-width: 400px) {
+  .stats-card {
+    height: 200px;
+  }
+  .icon-container {
+    width: 64px;
+    height: 64px;
+    padding: 12px;
+  }
+  .stat-value {
+    font-size: 28px;
   }
 }
 </style>

@@ -1,4 +1,3 @@
-<!-- src/components/WelcomeCard.vue -->
 <template>
   <el-card
       class="welcome-card"
@@ -12,12 +11,29 @@
           src="http://shanhai10241.test.upcdn.net/null/56210461.jpeg"
           alt="头像"
       />
+
       <div class="welcome-text">
+        <!-- 问候语 -->
         <div class="greeting">
           {{ greeting }}，{{ userName }}，{{ message }}
         </div>
-        <!-- 这里不再是 weather，而改成 dateTime -->
-        <div class="sub">{{ dateTime }}</div>
+
+        <!-- 一言 + 悬浮按钮 -->
+        <div
+            class="hitokoto-wrapper"
+            @mouseenter="hover = true"
+            @mouseleave="hover = false"
+        >
+          <span class="hitokoto">
+            {{ hitokoto }} <span class="from">—— {{ from }}</span>
+          </span>
+
+          <!-- 悬浮按钮：复制 + 刷新 -->
+          <div class="btn-group" :class="{ show: hover }">
+            <el-icon @click="copySentence"><CopyDocument /></el-icon>
+            <el-icon @click="reload"><Refresh /></el-icon>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -41,8 +57,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
+import { CopyDocument, Refresh } from '@element-plus/icons-vue'
 
-// —— 基本数据不变 ——
+/* —— 静态数据 —— */
 const userName = 'Super'
 const message = '今天又是充满活力的一天！'
 const projectCount = 25
@@ -50,7 +69,7 @@ const todoDone = 4
 const todoTotal = 16
 const messageCount = 12
 
-// —— body-style 保持 flex 布局 ——
+/* —— 样式 —— */
 const bodyStyle = {
   display: 'flex',
   justifyContent: 'space-between',
@@ -58,7 +77,7 @@ const bodyStyle = {
   padding: '20px'
 }
 
-// —— 动态问候 ——
+/* —— 动态问候 —— */
 const greeting = computed(() => {
   const h = new Date().getHours()
   if (h < 6) return '凌晨好'
@@ -68,21 +87,36 @@ const greeting = computed(() => {
   return '晚上好'
 })
 
-// —— 用 dateTime 代替 weather ——
-const dateTime = ref('')
-let timer: number
-onMounted(() => {
-  const update = () => {
-    const d = new Date()
-    const y = d.getFullYear()
-    const m = String(d.getMonth() + 1).padStart(2, '0')
-    const day = String(d.getDate()).padStart(2, '0')
-    const hh = String(d.getHours()).padStart(2, '0')
-    const mm = String(d.getMinutes()).padStart(2, '0')
-    dateTime.value = `${y}年${m}月${day}日 ${hh}:${mm}`
+/* —— 一言 —— */
+const hitokoto = ref('加载中...')
+const from = ref('')
+const hover = ref(false)
+let timer: number | undefined
+
+const fetchSentence = async () => {
+  try {
+    const { data } = await axios.get('https://v1.hitokoto.cn/?encode=json')
+    hitokoto.value = data.hitokoto
+    // 组合出处：作品名 + 作者（如果有）
+    from.value = data.from
+        ? data.from + (data.from_who ? ` · ${data.from_who}` : '')
+        : ''
+  } catch (e) {
+    hitokoto.value = '获取一言失败'
+    console.error(e)
   }
-  update()
-  timer = window.setInterval(update, 60 * 1000)
+}
+
+const reload = () => fetchSentence()
+
+const copySentence = async () => {
+  await navigator.clipboard.writeText(`${hitokoto.value} —— ${from.value}`)
+  ElMessage.success('已复制到剪贴板')
+}
+
+onMounted(() => {
+  fetchSentence()
+  timer = window.setInterval(fetchSentence, 60 * 1000) // 每分钟刷新
 })
 onUnmounted(() => {
   clearInterval(timer)
@@ -92,8 +126,8 @@ onUnmounted(() => {
 <style scoped>
 .welcome-card {
   border-radius: 12px;
-  background: var(--el-bg-color-container);
-  box-shadow: var(--el-box-shadow-2);
+  background: var(--el-bg-color);
+  box-shadow: var(--el-box-shadow);
 }
 
 /* 左侧 */
@@ -113,10 +147,42 @@ onUnmounted(() => {
   font-weight: 600;
   color: var(--el-text-color-primary);
 }
-.welcome-text .sub {
+
+/* 一言 */
+.hitokoto-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-top: 6px;
+}
+.hitokoto {
   font-size: 14px;
   color: var(--el-text-color-secondary);
-  margin-top: 6px;
+}
+.hitokoto .from {
+  margin-left: 4px;
+}
+
+/* 悬浮按钮 */
+.btn-group {
+  position: absolute;
+  right: -48px;                /* 根据需要微调 */
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.btn-group.show {
+  opacity: 1;
+}
+.btn-group .el-icon {
+  cursor: pointer;
+  color: var(--el-color-primary-light-8);
+  font-size: 18px;
+}
+.btn-group .el-icon:hover {
+  color: var(--el-color-primary);
 }
 
 /* 右侧统计 */
