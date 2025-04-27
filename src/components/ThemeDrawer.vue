@@ -20,7 +20,7 @@ const isDark = useDark({ selector:'html', attribute:'class', valueDark:'dark', v
 const toggleDark = useToggle(isDark)
 const app = useAppStore()
 function reset(){
-  app.setPrimary('#646cff')
+  app.setPrimary('#409EFF')
   if(isDark.value) toggleDark()
 }
 </script>

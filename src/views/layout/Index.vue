@@ -4,7 +4,8 @@
     <el-aside :width="app.sidebarCollapse ? '60px' : '200px'" class="aside">
 
       <div class="logo">
-        <img src="@/assets/svg/logo.svg" class="icon" />
+<!--        <img src="@/assets/svg/logo.svg" class="icon" >-->
+        <logo  class="icon"/>
         <!-- 折叠时文字渐隐 -->
         <transition name="fade">
           <span v-if="!app.sidebarCollapse" class="name">题灵 AI</span>
@@ -31,6 +32,10 @@
 import Navbar from '@/components/Navbar.vue'
 import Menu from '@/components/Menu.vue'
 import { useAppStore } from '@/stores/app'
+import logo from '@/assets/svg/logo.svg';
+console.log("logo");  // 打印 logo 查看值
+console.log(logo);  // 打印 logo 查看值
+
 
 /* 直接使用 Pinia 状态，不再自建 collapse 变量 */
 const app = useAppStore()

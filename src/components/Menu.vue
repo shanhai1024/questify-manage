@@ -77,18 +77,18 @@ const menuData: MenuItem[] = [
   {
     label: '系统管理',   icon: SystemManger,     route: 'sys',
     children: [
-      { label: '用户管理', icon: UserManger,    route: '/sys/user' },
-      { label: '角色管理', icon: RoleManger,       route: '/sys/role' },
-      { label: '权限管理', icon: Permissions,route: '/sys/perm' }
+      { label: '用户管理', icon: UserManger,    route: '/user' },
+      { label: '角色管理', icon: RoleManger,       route: '/role' },
+      { label: '权限管理', icon: Permissions,route: '/perm' }
     ]
   },
   {
-    label: '题目管理',   icon: subject,     route: 'quiz',
+    label: '题目管理',   icon: subject,     route: '/singleChoiceQuestion',
     children: [
-      { label: '单选题',   icon: singleChoiceQuestion,  route: '/quiz/single' },
-      { label: '多选题',   icon: multipleChoiceQuestions,        route: '/quiz/multiple' },
-      { label: '判断题',   icon: judgmentQuestion,  route: '/quiz/judge' },
-      { label: '解答题',   icon: shortAnswerQuestions,     route: '/quiz/essay' }
+      { label: '单选题',   icon: singleChoiceQuestion,  route: '/singleChoiceQuestion' },
+      { label: '多选题',   icon: multipleChoiceQuestions,        route: '/multipleChoiceQuestions' },
+      { label: '判断题',   icon: judgmentQuestion,  route: '/judgmentQuestion' },
+      { label: '解答题',   icon: shortAnswerQuestions,     route: '/judgmentQuestion' }
     ]
   },
   { label: '系统设置',   icon: Setting,      route: '/setting' }

@@ -140,8 +140,8 @@ html.dark .navbar {
 
 /* 圆形按钮 */
 .icon-btn {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   color: var(--el-color-primary);
 }
 
