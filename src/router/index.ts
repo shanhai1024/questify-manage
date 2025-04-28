@@ -14,11 +14,13 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/',
         component: Layout,
-        redirect: '/dashboard',             // 默认重定向
+        redirect: '/dashboard',
+        // 默认重定向
         children: [
             {
                 path: 'dashboard',
                 component: Dashboard,
+                name: 'home',
                 meta: {title: '仪表盘'}
             },
             {
