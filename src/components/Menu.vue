@@ -88,7 +88,7 @@ const menuData: MenuItem[] = [
       { label: '单选题',   icon: singleChoiceQuestion,  route: '/singleChoiceQuestion' },
       { label: '多选题',   icon: multipleChoiceQuestions,        route: '/multipleChoiceQuestions' },
       { label: '判断题',   icon: judgmentQuestion,  route: '/judgmentQuestion' },
-      { label: '解答题',   icon: shortAnswerQuestions,     route: '/judgmentQuestion' }
+      { label: '解答题',   icon: shortAnswerQuestions,     route: '/shortAnswerQuestions' }
     ]
   },
   { label: '系统设置',   icon: Setting,      route: '/setting' }

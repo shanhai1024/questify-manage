@@ -67,7 +67,7 @@ const routes: RouteRecordRaw[] = [
                 meta: {title: '判题题管理'}
             },
             {
-                path: 'judgmentQuestion',
+                path: 'shortAnswerQuestions',
                 /* 懒加载写法 ↓↓↓ */
                 component: () => import('@/views/subject/shortAnswerQuestions.vue'),
                 meta: {title: '简答题管理'}

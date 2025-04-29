@@ -1,6 +1,10 @@
 <template>
   <div class="container">
     <h2 class="title">单选题管理</h2>
+    <!-- 添加题目按钮 -->
+    <div style="margin-bottom: 20px; text-align: right;">
+      <el-button type="success" @click="openAddDialog">添加题目</el-button>
+    </div>
     <el-table :data="paginatedData" style="width: 100%" stripe>
       <!-- 题目列 -->
       <el-table-column label="题目" prop="question" width="300">
@@ -95,7 +99,7 @@
             <el-checkbox v-model="option.isCorrect" :disabled="isCorrectDisabled(index)">正确答案</el-checkbox>
             <el-button type="danger" size="small" @click="removeOption(index)" style="margin-left: 10px;">删除</el-button>
           </div>
-          <el-button type="primary" size="small" @click="addOption">添加选项</el-button>
+          <el-button type="primary" size="small" @click="addOption('edit')">添加选项</el-button>
         </el-form-item>
 
         <!-- 解析 -->
@@ -109,12 +113,65 @@
         <el-button type="primary" @click="submitEdit">确认</el-button>
       </span>
     </el-dialog>
+
+    <!-- 添加题目弹出框 -->
+    <el-dialog v-model="addDialogVisible" width="60%" title="添加单选题" custom-class="edit-dialog">
+      <el-form :model="addForm" label-width="120px" ref="addFormRef" :rules="addFormRules">
+        <!-- 题目名称 -->
+        <el-form-item label="题目名称" prop="question">
+          <el-input v-model="addForm.question" placeholder="请输入题目名称"></el-input>
+        </el-form-item>
+
+        <!-- 难度 -->
+        <el-form-item label="难度" prop="difficult">
+          <el-select v-model="addForm.difficult" placeholder="请选择难度">
+            <el-option label="简单" :value="1"></el-option>
+            <el-option label="中等" :value="2"></el-option>
+            <el-option label="困难" :value="3"></el-option>
+          </el-select>
+        </el-form-item>
+
+        <!-- 分数 -->
+        <el-form-item label="分数" prop="score">
+          <el-input-number v-model="addForm.score" :min="1" :max="100"></el-input-number>
+        </el-form-item>
+
+        <!-- 出题人 -->
+        <el-form-item label="出题人" prop="settleName">
+          <el-input v-model="addForm.settleName" placeholder="请输入出题人姓名"></el-input>
+        </el-form-item>
+
+        <!-- 选项 -->
+        <el-form-item label="选项" prop="options">
+          <div v-for="(option, index) in addForm.options" :key="index" class="option-item">
+            <el-input
+                v-model="option.content"
+                placeholder="请输入选项内容"
+                style="width: 300px; margin-right: 10px;"
+            ></el-input>
+            <el-checkbox v-model="option.isCorrect" :disabled="isCorrectDisabledAdd(index)">正确答案</el-checkbox>
+            <el-button type="danger" size="small" @click="removeOptionAdd(index)" style="margin-left: 10px;">删除</el-button>
+          </div>
+          <el-button type="primary" size="small" @click="addOption('add')">添加选项</el-button>
+        </el-form-item>
+
+        <!-- 解析 -->
+        <el-form-item label="解析" prop="solution">
+          <el-input type="textarea" v-model="addForm.solution" placeholder="请输入题目解析"></el-input>
+        </el-form-item>
+      </el-form>
+
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="addDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitAdd">确认</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { ref, computed, onMounted } from 'vue';
-import { ElTable, ElTableColumn, ElButton, ElPagination, ElDialog, ElMessage, ElForm, ElFormItem, ElInput, ElSelect, ElOption, ElInputNumber, ElCheckbox, ElMessageBox } from 'element-plus';
+import { ElTable, ElTableColumn, ElButton, ElPagination, ElDialog, ElMessage, ElForm, ElFormItem, ElInput, ElSelect, ElOption, ElInputNumber, ElCheckbox } from 'element-plus';
 import api from '@/api/subject';
 
 export default {
@@ -132,8 +189,7 @@ export default {
     ElSelect,
     ElOption,
     ElInputNumber,
-    ElCheckbox,
-    ElMessageBox
+    ElCheckbox
   },
   setup() {
     const data = ref([]);
@@ -168,6 +224,7 @@ export default {
       getSubjectData();
     };
 
+    // 编辑相关逻辑
     const editDialogVisible = ref(false);
     const editForm = ref({
       id: null,
@@ -207,7 +264,7 @@ export default {
         score: row.score,
         solution: row.solution,
         options: row.options.map(option => ({
-          id: option.id || null,  // 假设选项有 ID
+          id: option.id || null,
           label: option.label,
           content: option.content,
           isCorrect: option.isCorrect
@@ -216,9 +273,10 @@ export default {
       editDialogVisible.value = true;
     };
 
-    const addOption = () => {
-      editForm.value.options.push({
-        label: String.fromCharCode(65 + editForm.value.options.length), // A, B, C, D...
+    const addOption = (formType) => {
+      const form = formType === 'edit' ? editForm : addForm;
+      form.value.options.push({
+        label: String.fromCharCode(65 + form.value.options.length), // A, B, C, D...
         content: '',
         isCorrect: false
       });
@@ -227,7 +285,6 @@ export default {
     const removeOption = (index) => {
       if (editForm.value.options.length > 2) {
         editForm.value.options.splice(index, 1);
-        // 重新调整选项的 label
         editForm.value.options.forEach((option, i) => {
           option.label = String.fromCharCode(65 + i);
         });
@@ -257,7 +314,7 @@ export default {
           radios: editForm.value.options.map(option => ({
             id: option.id || null,
             infoId: editForm.value.id,
-            optionType: option.label.charCodeAt(0) - 64, // A -> 1, B -> 2, etc.
+            optionType: option.label.charCodeAt(0) - 64,
             optionContent: option.content,
             isCorrect: option.isCorrect ? 1 : 0
           })),
@@ -281,6 +338,110 @@ export default {
     };
 
     const editFormRef = ref(null);
+
+    // 添加相关逻辑
+    const addDialogVisible = ref(false);
+    const addForm = ref({
+      question: '',
+      difficult: 1,
+      score: 1,
+      settleName: '',
+      solution: '',
+      options: [
+        { label: 'A', content: '', isCorrect: false },
+        { label: 'B', content: '', isCorrect: false }
+      ]
+    });
+
+    const addFormRules = {
+      question: [{ required: true, message: '请输入题目名称', trigger: 'blur' }],
+      difficult: [{ required: true, message: '请选择难度', trigger: 'change' }],
+      score: [{ required: true, message: '请输入分数', trigger: 'blur' }],
+      settleName: [{ required: true, message: '请输入出题人', trigger: 'blur' }],
+      options: [
+        {
+          validator: (rule, value, callback) => {
+            if (!value || value.length < 2) {
+              callback(new Error('至少需要两个选项'));
+            } else if (!value.some(option => option.isCorrect)) {
+              callback(new Error('至少需要一个正确答案'));
+            } else {
+              callback();
+            }
+          },
+          trigger: 'change'
+        }
+      ],
+      solution: [{ required: true, message: '请输入解析', trigger: 'blur' }]
+    };
+
+    const openAddDialog = () => {
+      addForm.value = {
+        question: '',
+        difficult: 1,
+        score: 1,
+        settleName: '',
+        solution: '',
+        options: [
+          { label: 'A', content: '', isCorrect: false },
+          { label: 'B', content: '', isCorrect: false }
+        ]
+      };
+      addDialogVisible.value = true;
+    };
+
+    const removeOptionAdd = (index) => {
+      if (addForm.value.options.length > 2) {
+        addForm.value.options.splice(index, 1);
+        addForm.value.options.forEach((option, i) => {
+          option.label = String.fromCharCode(65 + i);
+        });
+      } else {
+        ElMessage.warning('至少需要两个选项');
+      }
+    };
+
+    const isCorrectDisabledAdd = (currentIndex) => {
+      const correctCount = addForm.value.options.filter(option => option.isCorrect).length;
+      return correctCount === 1 && !addForm.value.options[currentIndex].isCorrect;
+    };
+
+    const submitAdd = async () => {
+      try {
+        await addFormRef.value.validate();
+        const requestData = {
+          info: {
+            name: addForm.value.question,
+            difficulty: addForm.value.difficult,
+            settleName: addForm.value.settleName,
+            type: 1,
+            score: addForm.value.score,
+            parse: addForm.value.solution
+          },
+          questionTypeCode: 1,
+          question: addForm.value.options.map(option => ({
+            // infoId 在添加时由后端生成，不需要提供
+            optionType: option.label.charCodeAt(0) - 64,
+            optionContent: option.content,
+            isCorrect: option.isCorrect ? 1 : 0
+          }))
+        };
+
+        const response = await api.addSubject(requestData);
+        if (response.code === 200) {
+          ElMessage.success('添加成功');
+          addDialogVisible.value = false;
+          getSubjectData();
+        } else {
+          ElMessage.error('添加失败');
+        }
+      } catch (error) {
+        console.error('Error adding question:', error);
+        ElMessage.error('添加失败，请重试');
+      }
+    };
+
+    const addFormRef = ref(null);
 
     const deleteQuestion = async (id, type) => {
       try {
@@ -324,6 +485,14 @@ export default {
       isCorrectDisabled,
       submitEdit,
       editFormRef,
+      addDialogVisible,
+      addForm,
+      addFormRules,
+      openAddDialog,
+      removeOptionAdd,
+      isCorrectDisabledAdd,
+      submitAdd,
+      addFormRef,
       deleteQuestion,
       dialogVisible,
       selectedQuestion,
@@ -360,7 +529,7 @@ export default {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* 编辑弹出框的样式 */
+/* 编辑和添加弹出框的样式 */
 .edit-dialog .el-dialog__body {
   padding: 30px;
   background-color: #f9f9f9;

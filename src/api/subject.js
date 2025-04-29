@@ -48,9 +48,19 @@ const updateSubject = (type, data) => {
   return request.put(`/subject/update?type=${type}`, data);
 };
 
+/**
+ * 添加题目
+ * @param {Object} data - 新题目数据
+ * @returns {Promise} - 返回请求结果
+ */
+const addSubject = (data) => {
+  return request.post('/questions/add', data);
+};
+
 export default {
   getSubjectList,
   getAllByType,
+  addSubject,
   deleteByType,
   updateSubject
 };
