@@ -10,8 +10,16 @@
 
     <!-- 表格展示题目数据 -->
     <el-table :data="paginatedData" style="width: 100%" stripe>
-      <el-table-column label="题目" prop="question" width="300"></el-table-column>
-      <el-table-column label="难度" prop="difficult" width="120"></el-table-column>
+      <el-table-column label="题目" prop="question" :min-width="300"></el-table-column>
+      <el-table-column label="难度" prop="difficult" :min-width="120">
+        <template #default="scope">
+          <el-tag
+              :type="scope.row.difficult === 1 ? 'success' : scope.row.difficult === 2 ? 'warning' : 'danger'">
+            {{ scope.row.difficult === 1 ? '简单' : scope.row.difficult === 2 ? '中等' : '困难' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+
       <el-table-column label="分数" prop="score" width="120"></el-table-column>
 
       <!-- 操作列：编辑和删除 -->
@@ -45,9 +53,9 @@
         <!-- 难度 -->
         <el-form-item label="难度" prop="difficult">
           <el-select v-model="editForm.difficult" placeholder="请选择难度">
-            <el-option label="简单" :value="1"></el-option>
-            <el-option label="中等" :value="2"></el-option>
-            <el-option label="困难" :value="3"></el-option>
+            <el-option label="简单" value="简单"></el-option>
+            <el-option label="中等" value="中等"></el-option>
+            <el-option label="困难" value="困难"></el-option>
           </el-select>
         </el-form-item>
 
@@ -86,9 +94,9 @@
         <!-- 难度 -->
         <el-form-item label="难度" prop="difficult">
           <el-select v-model="addForm.difficult" placeholder="请选择难度">
-            <el-option label="简单" :value="1"></el-option>
-            <el-option label="中等" :value="2"></el-option>
-            <el-option label="困难" :value="3"></el-option>
+            <el-option label="简单" value="简单"></el-option>
+            <el-option label="中等" value="中等"></el-option>
+            <el-option label="困难" value="困难"></el-option>
           </el-select>
         </el-form-item>
 
@@ -183,7 +191,7 @@ export default {
     const editForm = ref({
       id: null,
       question: '',
-      difficult: 1,
+      difficult: '简单', // 默认设置为简单
       score: 1,
       solution: '',
       answer: ''
@@ -252,7 +260,7 @@ export default {
     const addDialogVisible = ref(false);
     const addForm = ref({
       question: '',
-      difficult: 1,
+      difficult: '简单', // 默认设置为简单
       score: 1,
       solution: '',
       answer: ''
@@ -270,7 +278,7 @@ export default {
     const openAddDialog = () => {
       addForm.value = {
         question: '',
-        difficult: 1,
+        difficult: '简单', // 默认设置为简单
         score: 1,
         solution: '',
         answer: ''

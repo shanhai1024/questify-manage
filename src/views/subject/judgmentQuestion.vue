@@ -11,7 +11,14 @@
     <!-- 表格展示题目数据 -->
     <el-table :data="paginatedData" style="width: 100%" stripe>
       <el-table-column label="题目" prop="question" :min-width="300"></el-table-column>
-      <el-table-column label="难度" prop="difficult" :min-width="120"></el-table-column>
+      <el-table-column label="难度" prop="difficult" width="120">
+        <template #default="scope">
+          <el-tag
+              :type="scope.row.difficult === 1 ? 'success' : scope.row.difficult === 2 ? 'warning' : 'danger'">
+            {{ scope.row.difficult === 1 ? '简单' : scope.row.difficult === 2 ? '中等' : '困难' }}
+          </el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="分数" prop="score" :min-width="120"></el-table-column>
 
 
